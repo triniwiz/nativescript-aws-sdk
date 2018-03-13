@@ -1,0 +1,4 @@
+{
+  "main" : "s3",
+  "typings" : "index.d.ts"
+}

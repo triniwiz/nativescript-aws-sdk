@@ -1,0 +1,13 @@
+android {
+	productFlavors {
+		"nativescript-aws-sdk" {
+			dimension "nativescript-aws-sdk"
+		}
+	}
+}
+
+dependencies {
+    compile 'com.amazonaws:aws-android-sdk-core:2.6.16'
+    compile 'com.amazonaws:aws-android-sdk-s3:2.6.16'
+    compile 'com.amazonaws:aws-android-sdk-cognito:2.6.16'
+}
