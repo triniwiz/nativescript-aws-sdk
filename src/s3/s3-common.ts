@@ -33,7 +33,13 @@ export interface S3UploadOptions{
     progress: Function;
 }
 
-export interface S3DownloadOptions{}
+export interface S3DownloadOptions{
+    file: string;
+    bucketName: string;
+    key: string;
+    completed: Function;
+    progress: Function;
+}
 
 
 
