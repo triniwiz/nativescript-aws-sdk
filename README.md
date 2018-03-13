@@ -12,13 +12,25 @@ tns plugin add nativescript-aws-sdk
 
 ## Usage
 
+## Android
+
+Add the following services in the app/App_Resources/Android/AndroidManifest.xml
+
+```xml
+<manifest ... >
+    <application ... >
+        ...
+<service android:name= "com.amazonaws.mobileconnectors.s3.transferutility.TransferService" android:enabled="true" />
+  </application>
+</manifest>
+```
 ### TypeScript
 
 #### S3
 
 ```ts
 import { S3 } from 'nativescript-aws-sdk';
-S3.init({ endPoint: '', accessKey: '', secretKey: '', type: 'static' }); // <= Try calling this after the app launches to start the service
+S3.init({ endPoint: '', accessKey: '', secretKey: '', type: 'static' }); // <= Try calling this before the app starts
 ```
 
 ```ts
@@ -51,7 +63,7 @@ s3.cancel(imageUploaderId);
 
 ```js
 const S3 = require('nativescript-aws-sdk').S3;
-S3.S3.init({ endPoint: '', accessKey: '', secretKey: '', type: 'static' }); // <= Try calling this after the app launches to start the service
+S3.S3.init({ endPoint: '', accessKey: '', secretKey: '', type: 'static' }); // <= Try calling this before the app starts
 ```
 
 ```js
