@@ -107,6 +107,6 @@ s3.cancel(imageUploaderId);
 
 | IOS                                     | Android                                     |
 | --------------------------------------- | ------------------------------------------- |
-| Coming Soon | Coming Soon |
+| ![IOS](https://i.imgur.com/OylFzh7.gif) | ![Android](https://i.imgur.com/XYoT9Z5.gif) |
 
 
