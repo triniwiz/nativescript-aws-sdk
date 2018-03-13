@@ -12,7 +12,7 @@ tns plugin add nativescript-aws-sdk
 
 ## Usage
 
-## Android
+### Android
 
 Add the following services in the app/App_Resources/Android/AndroidManifest.xml
 
