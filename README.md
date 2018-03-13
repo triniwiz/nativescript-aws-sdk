@@ -96,11 +96,11 @@ s3.cancel(imageUploaderId);
 
 | Method                                   | Default | Type                         | Description                                       |
 | ---------------------------------------- | ------- | ---------------------------- |-----------------------------------------------------|
-| createDownload(options: S3DownloadOptions) |         | `string`                     | Creates a task it returns the id of the task |
-| createUpload(options: S3UploadOptions)    |         | `string`                     | Creates a task it returns the id of the task |
-| resume(id: string)                       |         | `void`                       | Resumes a task.                              |
-| cancel(id: string)                       |         | `void`                       | Cancels a task.                              |
-| pause(id: string)                        |         | `void`                       | Pauses a task.                               |
+| createDownload(options: S3DownloadOptions) |         | `number`                     | Creates a task it returns the id of the task |
+| createUpload(options: S3UploadOptions)    |         | `number`                     | Creates a task it returns the id of the task |
+| resume(id: number)                       |         | `void`                       | Resumes a task.                              |
+| cancel(id: number)                       |         | `void`                       | Cancels a task.                              |
+| pause(id: number)                        |         | `void`                       | Pauses a task.                               |
 
 
 ## Example Image
