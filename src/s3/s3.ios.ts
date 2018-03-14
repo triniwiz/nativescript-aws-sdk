@@ -1,15 +1,15 @@
 import {
+    DownloadEventData,
     ProgressEventData,
     S3AuthOptions,
     S3AuthTypes,
     S3Base,
+    S3DownloadOptions,
     S3EventError,
     S3Regions,
     S3UploadOptions,
-    S3DownloadOptions,
     StatusCode,
-    UploadEventData,
-    DownloadEventData
+    UploadEventData
 } from './s3-common';
 import * as utils from 'tns-core-modules/utils/utils';
 import * as fs from 'tns-core-modules/file-system';
@@ -23,7 +23,42 @@ export class S3 extends S3Base {
     private static Options: S3AuthOptions;
     private static Operations: Map<number, AWSS3TransferUtilityDownloadTask> = new Map ();
     private static OperationsData: Map<number, any> = new Map ();
-    private static getRegion(r){
+
+    public static init ( options: S3AuthOptions ) {
+        if ( !options ) return;
+        if ( options && !options.type ) {
+            throw new Error ( 'S3AuthType missing' );
+        }
+        S3.Options = options;
+        let credentialsProvider;
+        let config;
+
+        let credentialsRegion;
+        switch ( options.type ) {
+            case S3AuthTypes.static:
+                let endPoint;
+                if ( !options.endPoint ) {
+                    endPoint = AWSEndpoint.alloc ().initWithURLString ( 'https://s3.amazonaws.com' );
+                } else {
+                    endPoint = AWSEndpoint.alloc ().initWithURLString ( options.endPoint );
+                }
+                credentialsProvider = AWSStaticCredentialsProvider.alloc ().initWithAccessKeySecretKey ( options.accessKey, options.secretKey );
+                config = AWSServiceConfiguration.alloc ().initWithRegionEndpointCredentialsProvider ( S3.getRegion ( options.region ), endPoint, credentialsProvider );
+                break;
+            case S3AuthTypes.cognito:
+                //  =  AWSCognitoCredentialsProvider.alloc().ini
+
+                break;
+            default:
+                throw new Error ( 'Invalid S3AuthType' );
+        }
+        const manager = utils.ios.getter ( AWSServiceManager, AWSServiceManager.defaultServiceManager );
+        config.maxRetryCount = 5;
+        config.timeoutIntervalForRequest = 30;
+        manager.defaultServiceConfiguration = config;
+    }
+
+    private static getRegion ( r ) {
         let serviceRegion;
         switch ( r ) {
             case S3Regions.US_WEST_1:
@@ -87,39 +122,7 @@ export class S3 extends S3Base {
         }
         return serviceRegion;
     }
-    public static init ( options: S3AuthOptions ) {
-                if ( !options ) return;
-                if ( options && !options.type ) {
-                    throw new Error ( 'S3AuthType missing' );
-                }
-                S3.Options = options;
-                let credentialsProvider;
-                let config;
 
-                let credentialsRegion;
-                switch ( options.type ) {
-                    case S3AuthTypes.static:
-                        let endPoint;
-                        if ( !options.endPoint ) {
-                            endPoint = AWSEndpoint.alloc ().initWithURLString ( 'https://s3.amazonaws.com' );
-                        } else {
-                            endPoint = AWSEndpoint.alloc ().initWithURLString ( options.endPoint );
-                        }
-                        credentialsProvider = AWSStaticCredentialsProvider.alloc ().initWithAccessKeySecretKey ( options.accessKey, options.secretKey );
-                        config = AWSServiceConfiguration.alloc ().initWithRegionEndpointCredentialsProvider ( S3.getRegion(options.region), endPoint, credentialsProvider );
-                        break;
-                    case S3AuthTypes.cognito:
-                        //  =  AWSCognitoCredentialsProvider.alloc().ini
-
-                        break;
-                    default:
-                        throw new Error ( 'Invalid S3AuthType' );
-                }
-                const manager = utils.ios.getter ( AWSServiceManager, AWSServiceManager.defaultServiceManager );
-                config.maxRetryCount = 5;
-                config.timeoutIntervalForRequest = 30;
-                manager.defaultServiceConfiguration = config;
-    }
     public createUpload ( options: S3UploadOptions ): number {
         const transferUtility = utils.ios.getter ( AWSS3TransferUtility, AWSS3TransferUtility.defaultS3TransferUtility );
         const appRoot = fs.knownFolders.currentApp ().path;
@@ -129,7 +132,7 @@ export class S3 extends S3Base {
         } else if ( options.file && options.file.startsWith ( '/' ) ) {
             file = fs.File.fromPath ( options.file );
         } else if ( options.file && options.file.startsWith ( 'file:' ) ) {
-            file = fs.File.fromPath ( NSURL.URLWithString ( options.file ).path )
+            file = fs.File.fromPath ( NSURL.URLWithString ( options.file ).path );
         }
         const nativeFile = NSURL.fileURLWithPath ( file.path );
         const UTIRef = UTTypeCreatePreferredIdentifierForTag ( kUTTagClassFilenameExtension, nativeFile.pathExtension, null );
@@ -165,7 +168,7 @@ export class S3 extends S3Base {
                                     currentSize: sessionTask.countOfBytesSent,
                                     totalSize: progress.totalUnitCount,
                                     speed: 0
-                                } )
+                                } );
                             }
                         }
                     }
@@ -191,7 +194,7 @@ export class S3 extends S3Base {
                         if ( currentData && currentData.completed ) {
                             currentData.completed ( <S3EventError>{
                                 status: StatusCode.ERROR, message: error.localizedDescription
-                            }, null )
+                            }, null );
                         }
                     }
                 } );
@@ -202,15 +205,16 @@ export class S3 extends S3Base {
                     const currentData = S3.OperationsData.get ( task.taskIdentifier );
                     if ( currentData && currentData.completed ) {
                         currentData.completed ( null, <UploadEventData>{
-                            status: StatusCode.COMPLETED,
-                            path: `${currentData.endPoint}/${currentData.bucketName}/${currentData.key}`,
-                        } )
+                            status: StatusCode.COMPLETED, path: `${currentData.endPoint}/${currentData.bucketName}/${
+                                currentData.key
+                                }`
+                        } );
                     }
                 }
             } );
             return null;
         } );
-        uploadTask.continueWithBlock ( ( awsTask ) => {
+        uploadTask.continueWithBlock ( awsTask => {
             if ( awsTask.error ) {
                 console.log ( awsTask.error.localizedDescription );
                 return null;
@@ -233,7 +237,8 @@ export class S3 extends S3Base {
         } );
         return id;
     }
-    public createDownload (options: S3DownloadOptions): number {
+
+    public createDownload ( options: S3DownloadOptions ): number {
         const transferUtility = utils.ios.getter ( AWSS3TransferUtility, AWSS3TransferUtility.defaultS3TransferUtility );
         const appRoot = fs.knownFolders.currentApp ().path;
 
@@ -243,9 +248,9 @@ export class S3 extends S3Base {
         } else if ( options.file && options.file.startsWith ( '/' ) ) {
             file = fs.File.fromPath ( options.file );
         } else if ( options.file && options.file.startsWith ( 'file:' ) ) {
-            file = fs.File.fromPath ( NSURL.URLWithString ( options.file ).path )
+            file = fs.File.fromPath ( NSURL.URLWithString ( options.file ).path );
         }
-        const nativeFile = NSURL.URLWithString(`file://${file.path}`);
+        const nativeFile = NSURL.URLWithString ( `file://${file.path}` );
         const expression = AWSS3TransferUtilityUploadExpression.new ();
         expression.progressBlock = ( task, progress ) => {
             const sessionTask = task.sessionTask;
@@ -266,7 +271,7 @@ export class S3 extends S3Base {
                                     currentSize: sessionTask.countOfBytesReceived,
                                     totalSize: progress.totalUnitCount,
                                     speed: 0
-                                } )
+                                } );
                             }
                         }
                     }
@@ -282,10 +287,9 @@ export class S3 extends S3Base {
                 } else if ( sessionTask.state === NSURLSessionTaskState.Canceling ) {
                 }
             } );
-
         };
         let id;
-        const downloadTask = transferUtility.downloadToURLBucketKeyExpressionCompletionHandler ( null, options.bucketName, options.key, expression, ( task,_file,_fileData ,error ) => {
+        const downloadTask = transferUtility.downloadToURLBucketKeyExpressionCompletionHandler ( null, options.bucketName, options.key, expression, ( task, _file, _fileData, error ) => {
             if ( error ) {
                 dispatch_async ( main_queue, () => {
                     if ( S3.OperationsData.has ( task.taskIdentifier ) ) {
@@ -293,13 +297,13 @@ export class S3 extends S3Base {
                         if ( currentData && currentData.completed ) {
                             currentData.completed ( <S3EventError>{
                                 status: StatusCode.ERROR, message: error.localizedDescription
-                            }, null )
+                            }, null );
                         }
                     }
                 } );
                 return null;
             }
-            const f = _fileData.writeToURLAtomically(nativeFile,true);
+            const f = _fileData.writeToURLAtomically ( nativeFile, true );
             dispatch_async ( main_queue, () => {
                 const current = Math.floor ( Math.round ( task.progress.fractionCompleted * 100 ) );
                 if ( S3.OperationsData.has ( task.taskIdentifier ) ) {
@@ -310,33 +314,31 @@ export class S3 extends S3Base {
                             currentSize: task.sessionTask.countOfBytesReceived,
                             totalSize: task.progress.totalUnitCount,
                             speed: 0
-                        } )
+                        } );
                     }
                     if ( currentData && currentData.completed ) {
-                        if(f){
+                        if ( f ) {
                             currentData.completed ( null, <DownloadEventData>{
-                                status: StatusCode.COMPLETED,
-                                path: nativeFile.path,
-                            } )
+                                status: StatusCode.COMPLETED, path: nativeFile.path
+                            } );
                         }
                     }
                 }
             } );
 
             return null;
-
         } );
-        downloadTask.continueWithBlock ( ( awsTask ) => {
+        downloadTask.continueWithBlock ( awsTask => {
             if ( awsTask.error ) {
                 const error = awsTask.error;
                 dispatch_async ( main_queue, () => {
                     const _id = awsTask.result ? awsTask.result.taskIdentifier : id;
                     if ( S3.OperationsData.has ( _id ) ) {
-                        const currentData = S3.OperationsData.get ( _id);
+                        const currentData = S3.OperationsData.get ( _id );
                         if ( currentData && currentData.completed ) {
                             currentData.completed ( <S3EventError>{
                                 status: StatusCode.ERROR, message: error.localizedDescription
-                            }, null )
+                            }, null );
                         }
                     }
                 } );
@@ -359,18 +361,21 @@ export class S3 extends S3Base {
         } );
         return id;
     }
+
     public resume ( id: number ) {
         if ( id && S3.Operations.has ( id ) ) {
             const task = S3.Operations.get ( id );
             task.resume ();
         }
     }
+
     public pause ( id: number ) {
         if ( id && S3.Operations.has ( id ) ) {
             const task = S3.Operations.get ( id );
             task.suspend ();
         }
     }
+
     public cancel ( id: number ) {
         if ( id && S3.Operations.has ( id ) ) {
             const task = S3.Operations.get ( id );

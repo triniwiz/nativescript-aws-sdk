@@ -1,4 +1,5 @@
 import {
+    DownloadEventData,
     ProgressEventData,
     S3AuthOptions,
     S3Base,
@@ -6,8 +7,7 @@ import {
     S3EventError,
     S3UploadOptions,
     StatusCode,
-    UploadEventData,
-    DownloadEventData
+    UploadEventData
 } from './s3-common';
 import * as utils from 'tns-core-modules/utils/utils';
 import * as fs from 'tns-core-modules/file-system';
@@ -26,10 +26,13 @@ export class S3 extends S3Base {
             S3.Options = options;
             const credentials = new com.amazonaws.auth.BasicAWSCredentials ( S3.Options.accessKey, S3.Options.secretKey );
             S3.Client = new com.amazonaws.services.s3.AmazonS3Client ( credentials );
-            if(S3.Options.endPoint){
+            if ( S3.Options.endPoint ) {
                 S3.Client.setEndpoint ( S3.Options.endPoint );
             }
-            S3.TransferUtility = new com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility.builder ().s3Client ( S3.Client ).context ( utils.ad.getApplicationContext () ).build ();
+            S3.TransferUtility = new com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility.builder ()
+                .s3Client ( S3.Client )
+                .context ( utils.ad.getApplicationContext () )
+                .build ();
         }
     }
 
@@ -41,7 +44,7 @@ export class S3 extends S3Base {
         } else if ( options.file && options.file.startsWith ( '/' ) ) {
             file = fs.File.fromPath ( options.file );
         } else if ( options.file && options.file.startsWith ( 'file:' ) ) {
-            file = fs.File.fromPath ( NSURL.URLWithString ( options.file ).path )
+            file = fs.File.fromPath ( NSURL.URLWithString ( options.file ).path );
         }
 
         const fileDownload = S3.TransferUtility.download ( options.bucketName, options.key, new java.io.File ( file.path ) );
@@ -92,9 +95,8 @@ export class S3 extends S3Base {
                             const currentData = S3.OperationsData.get ( id );
                             if ( currentData && currentData.completed ) {
                                 currentData.completed ( null, <DownloadEventData>{
-                                    status: StatusCode.COMPLETED,
-                                    path: currentData.path
-                                } )
+                                    status: StatusCode.COMPLETED, path: currentData.path
+                                } );
                             }
                         }
                         break;
@@ -110,11 +112,9 @@ export class S3 extends S3Base {
                         break;
                     case com.amazonaws.mobileconnectors.s3.transferutility.TransferState.UNKNOWN:
                         break;
-
                 }
-
             }, onProgressChanged: function ( id, bytesCurrent, bytesTotal ) {
-                const p = Math.round ( ( bytesCurrent / bytesTotal * 100 ) );
+                const p = Math.round ( bytesCurrent / bytesTotal * 100 );
                 const current = p ? p : 0;
                 if ( S3.OperationsData.has ( id ) ) {
                     const data = S3.OperationsData.get ( id );
@@ -127,23 +127,21 @@ export class S3 extends S3Base {
                         if ( data.progress ) {
                             data.progress ( <ProgressEventData>{
                                 value: current, currentSize: bytesCurrent, totalSize: bytesCurrent, speed: 0
-                            } )
+                            } );
                         }
                     }
                 }
-
             }, onError: function ( id, ex ) {
                 if ( S3.OperationsData.has ( id ) ) {
                     const currentData = S3.OperationsData.get ( id );
                     if ( currentData && currentData.completed ) {
                         currentData.completed ( <S3EventError>{
                             status: StatusCode.ERROR, message: ex.getMessage ()
-                        }, null )
+                        }, null );
                     }
                 }
             }
         } ) );
-
 
         return fileDownload.getId ();
     }
@@ -156,7 +154,7 @@ export class S3 extends S3Base {
         } else if ( options.file && options.file.startsWith ( '/' ) ) {
             file = fs.File.fromPath ( options.file );
         } else if ( options.file && options.file.startsWith ( 'file:' ) ) {
-            file = fs.File.fromPath ( NSURL.URLWithString ( options.file ).path )
+            file = fs.File.fromPath ( NSURL.URLWithString ( options.file ).path );
         }
         let acl;
         switch ( options.acl ) {
@@ -238,8 +236,8 @@ export class S3 extends S3Base {
                             if ( currentData && currentData.completed ) {
                                 currentData.completed ( null, <UploadEventData>{
                                     status: StatusCode.COMPLETED,
-                                    path: S3.Client.getResourceUrl ( currentData.bucketName, currentData.key ),
-                                } )
+                                    path: S3.Client.getResourceUrl ( currentData.bucketName, currentData.key )
+                                } );
                             }
                         }
                         break;
@@ -255,11 +253,9 @@ export class S3 extends S3Base {
                         break;
                     case com.amazonaws.mobileconnectors.s3.transferutility.TransferState.UNKNOWN:
                         break;
-
                 }
-
             }, onProgressChanged: function ( id, bytesCurrent, bytesTotal ) {
-                const current = Math.round ( ( bytesCurrent / bytesTotal * 100 ) );
+                const current = Math.round ( bytesCurrent / bytesTotal * 100 );
                 if ( S3.OperationsData.has ( id ) ) {
                     const data = S3.OperationsData.get ( id );
                     if ( data ) {
@@ -271,18 +267,17 @@ export class S3 extends S3Base {
                         if ( data.progress ) {
                             data.progress ( <ProgressEventData>{
                                 value: current, currentSize: bytesCurrent, totalSize: bytesCurrent, speed: 0
-                            } )
+                            } );
                         }
                     }
                 }
-
             }, onError: function ( id, ex ) {
                 if ( S3.OperationsData.has ( id ) ) {
                     const currentData = S3.OperationsData.get ( id );
                     if ( currentData && currentData.completed ) {
                         currentData.completed ( <S3EventError>{
                             status: StatusCode.ERROR, message: ex.getMessage ()
-                        }, null )
+                        }, null );
                     }
                 }
             }
@@ -308,5 +303,4 @@ export class S3 extends S3Base {
             S3.TransferUtility.cancel ( id );
         }
     }
-
 }
