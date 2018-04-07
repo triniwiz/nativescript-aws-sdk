@@ -42,7 +42,13 @@ export class S3 extends S3Base {
                 } else {
                     endPoint = AWSEndpoint.alloc ().initWithURLString ( options.endPoint );
                 }
-                credentialsProvider = AWSStaticCredentialsProvider.alloc ().initWithAccessKeySecretKey ( options.accessKey, options.secretKey );
+                if (options.sessionToken) {
+                    credentialsProvider = AWSBasicSessionCredentialsProvider.alloc().initWithAccessKeySecretKeySessionToken(options.accessKey, options.secretKey, options.sessionToken);                    
+                }
+                else
+                {
+                    credentialsProvider = AWSStaticCredentialsProvider.alloc().initWithAccessKeySecretKey(options.accessKey, options.secretKey);
+                }
                 config = AWSServiceConfiguration.alloc ().initWithRegionEndpointCredentialsProvider ( S3.getRegion ( options.region ), endPoint, credentialsProvider );
                 break;
             case S3AuthTypes.cognito:

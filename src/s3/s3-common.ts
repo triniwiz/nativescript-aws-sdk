@@ -19,6 +19,7 @@ export interface S3AuthOptions{
     endPoint?: string;
     accessKey: string;
     secretKey: string;
+    sessionToken?: string;    
     type: S3AuthTypes | 'static' | 'cognito';
     region?: S3Regions;
 }

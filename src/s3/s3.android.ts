@@ -24,7 +24,14 @@ export class S3 extends S3Base {
     public static init ( options: S3AuthOptions ) {
         if ( !S3.Options ) {
             S3.Options = options;
-            const credentials = new com.amazonaws.auth.BasicAWSCredentials ( S3.Options.accessKey, S3.Options.secretKey );
+            var credentials;
+            if (S3.Options.sessionToken) {            
+                credentials = new com.amazonaws.auth.BasicSessionCredentials(S3.Options.accessKey, S3.Options.secretKey, S3.Options.sessionToken);
+            }
+            else
+            {
+                credentials = new com.amazonaws.auth.BasicAWSCredentials(S3.Options.accessKey, S3.Options.secretKey);
+            }
             S3.Client = new com.amazonaws.services.s3.AmazonS3Client ( credentials );
             if ( S3.Options.endPoint ) {
                 S3.Client.setEndpoint ( S3.Options.endPoint );
