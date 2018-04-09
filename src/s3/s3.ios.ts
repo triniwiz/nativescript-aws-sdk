@@ -34,22 +34,19 @@ export class S3 extends S3Base {
         let config;
 
         let credentialsRegion;
+        let endPoint;
+        if ( !options.endPoint ) {
+            endPoint = AWSEndpoint.alloc ().initWithURLString ( 'https://s3.amazonaws.com' );
+        } else {
+            endPoint = AWSEndpoint.alloc ().initWithURLString ( options.endPoint );
+        }
+
         switch ( options.type ) {
             case S3AuthTypes.static:
-                let endPoint;
-                if ( !options.endPoint ) {
-                    endPoint = AWSEndpoint.alloc ().initWithURLString ( 'https://s3.amazonaws.com' );
-                } else {
-                    endPoint = AWSEndpoint.alloc ().initWithURLString ( options.endPoint );
-                }
-                if (options.sessionToken) {
-                    credentialsProvider = AWSBasicSessionCredentialsProvider.alloc().initWithAccessKeySecretKeySessionToken(options.accessKey, options.secretKey, options.sessionToken);                    
-                }
-                else
-                {
-                    credentialsProvider = AWSStaticCredentialsProvider.alloc().initWithAccessKeySecretKey(options.accessKey, options.secretKey);
-                }
-                config = AWSServiceConfiguration.alloc ().initWithRegionEndpointCredentialsProvider ( S3.getRegion ( options.region ), endPoint, credentialsProvider );
+                credentialsProvider = AWSStaticCredentialsProvider.alloc().initWithAccessKeySecretKey(options.accessKey, options.secretKey);
+                break;
+            case S3AuthTypes.session:
+                credentialsProvider = AWSBasicSessionCredentialsProvider.alloc().initWithAccessKeySecretKeySessionToken(options.accessKey, options.secretKey, options.sessionToken);                                    
                 break;
             case S3AuthTypes.cognito:
                 //  =  AWSCognitoCredentialsProvider.alloc().ini
@@ -59,6 +56,7 @@ export class S3 extends S3Base {
                 throw new Error ( 'Invalid S3AuthType' );
         }
         const manager = utils.ios.getter ( AWSServiceManager, AWSServiceManager.defaultServiceManager );
+        config = AWSServiceConfiguration.alloc ().initWithRegionEndpointCredentialsProvider ( S3.getRegion ( options.region ), endPoint, credentialsProvider );        
         config.maxRetryCount = 5;
         config.timeoutIntervalForRequest = 30;
         manager.defaultServiceConfiguration = config;
