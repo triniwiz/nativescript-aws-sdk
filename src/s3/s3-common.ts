@@ -19,7 +19,8 @@ export interface S3AuthOptions{
     endPoint?: string;
     accessKey: string;
     secretKey: string;
-    type: S3AuthTypes | 'static' | 'cognito';
+    sessionToken?: string;    
+    type: S3AuthTypes | 'static' | 'cognito' | 'session';
     region?: S3Regions;
 }
 
@@ -79,7 +80,8 @@ export enum StatusCode {
 
 export enum S3AuthTypes{
     static = 'static',
-    cognito = 'cognito'
+    cognito = 'cognito',
+    session = 'session'
 }
 
 export enum S3Regions{

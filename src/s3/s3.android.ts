@@ -2,6 +2,7 @@ import {
     DownloadEventData,
     ProgressEventData,
     S3AuthOptions,
+    S3AuthTypes,
     S3Base,
     S3DownloadOptions,
     S3EventError,
@@ -24,7 +25,20 @@ export class S3 extends S3Base {
     public static init ( options: S3AuthOptions ) {
         if ( !S3.Options ) {
             S3.Options = options;
-            const credentials = new com.amazonaws.auth.BasicAWSCredentials ( S3.Options.accessKey, S3.Options.secretKey );
+            var credentials;
+
+            switch ( options.type ) {
+                case S3AuthTypes.static:
+                    credentials = new com.amazonaws.auth.BasicAWSCredentials(S3.Options.accessKey, S3.Options.secretKey);
+                break;
+                case S3AuthTypes.session:
+                    credentials = new com.amazonaws.auth.BasicSessionCredentials(S3.Options.accessKey, S3.Options.secretKey, S3.Options.sessionToken);
+                    break;
+                case S3AuthTypes.cognito:
+                    break;
+                default:
+                    throw new Error ( 'Invalid S3AuthType' );
+            }            
             S3.Client = new com.amazonaws.services.s3.AmazonS3Client ( credentials );
             if ( S3.Options.endPoint ) {
                 S3.Client.setEndpoint ( S3.Options.endPoint );
