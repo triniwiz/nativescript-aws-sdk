@@ -1,13 +1,17 @@
-export abstract class S3Base{
-    public abstract createUpload(options:S3UploadOptions):number;
-    public abstract createDownload(options:S3DownloadOptions):number;
-    public abstract pause(id:number):void;
-    public abstract resume(id:number):void;
-    public abstract cancel(id:number):void;
+export abstract class S3Base {
+    public abstract createUpload(options: S3UploadOptions): number;
+
+    public abstract createDownload(options: S3DownloadOptions): number;
+
+    public abstract pause(id: number): void;
+
+    public abstract resume(id: number): void;
+
+    public abstract cancel(id: number): void;
 }
 
 export function generateId(): string {
-    return 'xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         const r = (Math.random() * 16) | 0,
             v = c === 'x' ? r : (r & 0x3) | 0x8;
         return v.toString(16);
@@ -15,33 +19,32 @@ export function generateId(): string {
 }
 
 
-export interface S3AuthOptions{
+export interface S3AuthOptions {
     endPoint?: string;
     accessKey: string;
     secretKey: string;
-    sessionToken?: string;    
+    sessionToken?: string;
     type: S3AuthTypes | 'static' | 'cognito' | 'session';
     region?: S3Regions;
 }
 
-export interface S3UploadOptions{
+export interface S3UploadOptions {
     file: string;
     bucketName: string;
     key: string;
     mimeType?: string;
-    acl?:string;
+    acl?: string;
     completed: Function;
     progress: Function;
 }
 
-export interface S3DownloadOptions{
+export interface S3DownloadOptions {
     file: string;
     bucketName: string;
     key: string;
     completed: Function;
     progress: Function;
 }
-
 
 
 export interface S3EventError {
@@ -78,13 +81,13 @@ export enum StatusCode {
 }
 
 
-export enum S3AuthTypes{
+export enum S3AuthTypes {
     static = 'static',
     cognito = 'cognito',
     session = 'session'
 }
 
-export enum S3Regions{
+export enum S3Regions {
     US_EAST_1 = 'us-east-1',
     US_EAST_2 = 'us-east-2',
     US_WEST_1 = 'us-west-1',
