@@ -1,6 +1,6 @@
 {
     "name": "nativescript-aws-sdk",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "A NativeScript plugin using the Native sdks",
     "typings": "index.d.ts",
     "nativescript": {
