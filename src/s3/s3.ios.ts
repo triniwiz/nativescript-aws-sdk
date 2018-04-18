@@ -18,10 +18,13 @@ const main_queue = dispatch_get_current_queue();
 
 // const logger = utils.ios.getter(AWSDDLog,AWSDDLog.sharedInstance);
 // logger.logLevel = AWSDDLogLevelVerbose;
+declare const AWSEndpoint, AWSStaticCredentialsProvider,
+    AWSBasicSessionCredentialsProvider, AWSServiceManager, AWSRegionType, AWSServiceConfiguration, AWSS3TransferUtility,
+    AWSS3TransferUtilityUploadExpression;
 
 export class S3 extends S3Base {
     private static Options: S3AuthOptions;
-    private static Operations: Map<number, AWSS3TransferUtilityDownloadTask> = new Map();
+    private static Operations: Map<number, any> = new Map();
     private static OperationsData: Map<number, any> = new Map();
 
     public static init(options: S3AuthOptions) {

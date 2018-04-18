@@ -6,9 +6,13 @@
 
 ## Installation
 
-```bash
-tns plugin add nativescript-aws-sdk
-```
+#### NativeScript 4x
+
+* `tns plugin add nativescript-aws-sdk`
+
+#### NativeScript 3x
+
+* `tns plugin add nativescript-aws-sdk@0.0.4`
 
 ## Usage
 
